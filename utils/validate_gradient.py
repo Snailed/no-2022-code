@@ -2,8 +2,6 @@ import numpy as np
 from utils.error_measurements import relative_error
 
 def slope(f, x, h):
-    # if (x[0] == 0.0):
-    #     print(f(x+h), f(x))
     # assuming h is a n size vector containing all 0's except for one coordinate
     return abs(f(x + h) - f(x))/np.linalg.norm(h)
 
