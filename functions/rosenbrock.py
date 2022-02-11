@@ -14,6 +14,15 @@ class Rosenbrock:
             200*x[1] - 200*x[0]**2
         ])
 
+    @staticmethod
+    def hessian(x):
+        return np.array(
+            [
+                [2 + 1200*x[0]**2 - 400*x[1]**4, -400*x[0]],
+                [-400*x[0], 200]
+            ]
+        )
+
 def test():
     assert Rosenbrock.f([1, 1]) == 0.0
     assert Rosenbrock.f([200, 500]) == 156025039601.0

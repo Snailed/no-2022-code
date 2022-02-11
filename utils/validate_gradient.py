@@ -17,6 +17,17 @@ def assert_gradient(expected_nabla_f, f, xs, h, threshold=0.0001):
                 print(relative_error(abs(expected_nabla_f(x)[i]), slope(f, x, h_vec)), threshold)
             assert relative_error(abs(expected_nabla_f(x)[i]), slope(f, x, h_vec)) < threshold
 
+def assert_hessian(expected_nabla_nabla_f, nabla_f, xs, h, threshold=0.0001):
+    for x in xs:
+        for i in range(1, len(x) + 1):
+            for j in range(1, len(x) + 1):
+                h_vec = np.zeros(len(x))
+                h_vec[j] = h
+                if relative_error(abs(expected_nabla_nabla_f(x)[i][j]), slope(lambda x: nabla_f(x)[j], x, h_vec)) > threshold:
+                    print(expected_nabla_nabla_f(x)[i][j], slope(lambda x: nabla_f(x)[j], x, h_vec))
+                    print(relative_error(abs(expected_nabla_nabla_f(x)[i][j]), slope(lambda x: nabla_f(x)[j], x, h_vec)))
+                assert relative_error(abs(expected_nabla_nabla_f(x)[i][j]), slope(lambda x: nabla_f(x)[j], x, h_vec)) < threshold
+
 
 def test():
     def f(x):

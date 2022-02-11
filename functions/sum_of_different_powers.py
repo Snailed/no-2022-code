@@ -11,6 +11,14 @@ class SumOfDifferentPowers:
         d = len(x)
         return [2*(1 + (i-1)/(d-1))*x_i**((2*i-2)/(d-1)+1) for i, x_i in enumerate(x)]
 
+    @staticmethod
+    def hessian(x):
+        d = len(x)
+        matrix = np.zeros((len(x), len(x)))
+        for i in range(1, len(x)+1):
+            matrix[i][i] = (((2*d + 2*i - 4)(d + 2*i - 3))/((d-1)**2))*x[i]**((2*i-2)/(d-1))
+        return matrix
+
 
 def test():
     assert SumOfDifferentPowers.f([1,2]) == 1**2**1 + 2**2**2

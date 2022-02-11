@@ -12,6 +12,10 @@ class AttractiveSector:
         return (np.exp(-np.abs(x*q)) + max(x*q, 0))/(1 + np.exp(-np.abs(x*q)) + max(x*q, 0))
 
     @staticmethod
+    def _h_prime_prime(x, q):
+        return ((np.exp(-np.abs(x*q)) + max(x*q, 0))*q)/((1 + np.exp(-np.abs(x*q)) + max(x*q, 0))**2)
+
+    @staticmethod
     def f(x, q=10000):
         array = [AttractiveSector._h(
             x_i, q)**2 + 100*AttractiveSector._h(-x_i, q)**2 for x_i in x]
@@ -24,6 +28,18 @@ class AttractiveSector:
             + 200*AttractiveSector._h(-x_i, q)*AttractiveSector._h_prime(-x_i, q)
             for x_i in x
         ]
+
+    @staticmethod
+    def hessian(x, q=10000):
+        matrix = np.zeros((len(x), len(x)))
+        def h(x, q): return AttractiveSector._h(x, q)
+        def h_p(x, q): return AttractiveSector._h_prime(x, q)
+        def h_p2(x, q): return AttractiveSector._h_prime_prime(x, q)
+        for i in range(0, len(x)):
+            matrix[i][i] = 2*(h_p(x, q)**2) + 2*h(x,q)*h_p2(x,q) + 200 * (h_p(-x,q)**2) + 200 * h(-x,q)*h_p2(-x, q)
+        return matrix
+
+
 
 
 def test():

@@ -12,6 +12,16 @@ class LogEllipsoid:
     def gradient(x, epsilon=0.0001, alpha=1000):
         return Ellipsoid.gradient(x, alpha)/(epsilon + Ellipsoid.f(x, alpha))
 
+    @staticmethod
+    def hessian(x, epsilon=0.0001, alpha=1000):
+        matrix = np.zeros((len(x), len(x)))
+        def f(x): return Ellipsoid.f(x, alpha)
+        def gradient(x): return Ellipsoid.gradient(x, alpha)
+        def hessian(x): return Ellipsoid.hessian(x, alpha)
+        for i in range(0, len(x)):
+            for j in range(0, len(x)):
+                matrix[i][j] = (1/(-(epsilon + f(x, alpha)**2)**2)) * gradient(x, alpha) * gradient(x, alpha) + ((1/(epsilon + f(x, alpha))) * hessian(x, alpha))
+
 
 def test():
     assert LogEllipsoid.f([0, 1, 2]) == 8.301924272787891
