@@ -22,6 +22,7 @@ ipython-genutils==0.2.0
 ipywidgets==7.6.5
 jedi==0.18.1
 Jinja2==3.0.3
+joblib==1.1.0
 jsonschema==4.4.0
 jupyter==1.0.0
 jupyter-client==7.1.2
@@ -62,11 +63,14 @@ python-dateutil==2.8.2
 pyzmq==22.3.0
 qtconsole==5.2.2
 QtPy==2.0.1
+scikit-learn==1.0.2
+scipy==1.8.0
 Send2Trash==1.8.0
 six==1.16.0
 stack-data==0.1.4
 terminado==0.13.1
 testpath==0.5.0
+threadpoolctl==3.1.0
 toml==0.10.2
 tomli==2.0.1
 tornado==6.1
