@@ -7,16 +7,20 @@ class Ellipsoid:
     @staticmethod
     def f(x, alpha=1000):
         def sum_func(x_i, i):
-            return pow(alpha, (i - 1)/(len(x) - 1))*pow(x_i, 2)
+            try:
+                return pow(alpha, (i - 1)/(len(x) - 1))*pow(x_i, 2)
+            except ZeroDivisionError:
+                print(x)
+                raise ZeroDivisionError()
         sum_parts = [sum_func(x_i, i + 1) for i, x_i in enumerate(list(x))]
         return np.sum(list(sum_parts))
 
     @staticmethod
     def gradient(x, alpha=1000):
         return [
-                (2*alpha**(((i + 1)-1)/(len(x) - 1))*x_i)
-                for i, x_i in enumerate(x)
-            ]
+            (2*alpha**(((i + 1)-1)/(len(x) - 1))*x_i)
+            for i, x_i in enumerate(x)
+        ]
 
     @staticmethod
     def hessian(x, alpha=1000):

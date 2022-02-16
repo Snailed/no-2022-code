@@ -25,7 +25,8 @@ class AttractiveSector:
     def gradient(x, q=10000):
         return [
             2*AttractiveSector._h(x_i, q) * AttractiveSector._h_prime(x_i, q)
-            + 200*AttractiveSector._h(-x_i, q)*AttractiveSector._h_prime(-x_i, q)
+            + 200*AttractiveSector._h(-x_i, q) *
+            AttractiveSector._h_prime(-x_i, q)
             for x_i in x
         ]
 
@@ -36,10 +37,9 @@ class AttractiveSector:
         def h_p(x, q): return AttractiveSector._h_prime(x, q)
         def h_p2(x, q): return AttractiveSector._h_prime_prime(x, q)
         for i in range(0, len(x)):
-            matrix[i][i] = 2*(h_p(x, q)**2) + 2*h(x,q)*h_p2(x,q) + 200 * (h_p(-x,q)**2) + 200 * h(-x,q)*h_p2(-x, q)
+            matrix[i][i] = 2*(h_p(x, q)**2) + 2*h(x, q)*h_p2(x, q) + \
+                200 * (h_p(-x, q)**2) + 200 * h(-x, q)*h_p2(-x, q)
         return matrix
-
-
 
 
 def test():
@@ -61,11 +61,10 @@ def test():
 
     assert AttractiveSector.f([0.0000001, 0.2], q=1023) == 0.04004636157704798
     # Test around 0
-    assert AttractiveSector.f([-1, -0.1, -0.00001, 0.0, 0.00001, 0.1, 1]) == 102.01000146432473
+    assert AttractiveSector.f(
+        [-1, -0.1, -0.00001, 0.0, 0.00001, 0.1, 1]) == 102.01000146432473
 
     assert_gradient(
         lambda x: AttractiveSector.gradient(x),
         lambda x: AttractiveSector.f(x),
         [np.linspace(-30+i*10, 30+i*10, 100) for i in range(0, 10)], 0.00001, threshold=0.1)
-
-

@@ -23,6 +23,7 @@ class Rosenbrock:
             ]
         )
 
+
 def test():
     assert Rosenbrock.f([1, 1]) == 0.0
     assert Rosenbrock.f([200, 500]) == 156025039601.0
