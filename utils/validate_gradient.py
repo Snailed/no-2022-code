@@ -1,9 +1,11 @@
 import numpy as np
 from utils.error_measurements import relative_error
 
+
 def slope(f, x, h):
     # assuming h is a n size vector containing all 0's except for one coordinate
     return abs(f(x + h) - f(x))/np.linalg.norm(h)
+
 
 def assert_gradient(expected_nabla_f, f, xs, h, threshold=0.0001):
     # Threshold is arbitrarily chosen to be some small value
@@ -14,8 +16,11 @@ def assert_gradient(expected_nabla_f, f, xs, h, threshold=0.0001):
             h_vec[i] = h
             if relative_error(abs(expected_nabla_f(x)[i]), slope(f, x, h_vec)) > threshold:
                 print(expected_nabla_f(x)[i], slope(f, x, h_vec))
-                print(relative_error(abs(expected_nabla_f(x)[i]), slope(f, x, h_vec)), threshold)
-            assert relative_error(abs(expected_nabla_f(x)[i]), slope(f, x, h_vec)) < threshold
+                print(relative_error(abs(expected_nabla_f(
+                    x)[i]), slope(f, x, h_vec)), threshold)
+            assert relative_error(abs(expected_nabla_f(
+                x)[i]), slope(f, x, h_vec)) < threshold
+
 
 def assert_hessian(expected_nabla_nabla_f, nabla_f, xs, h, threshold=0.0001):
     for x in xs:
@@ -24,9 +29,12 @@ def assert_hessian(expected_nabla_nabla_f, nabla_f, xs, h, threshold=0.0001):
                 h_vec = np.zeros(len(x))
                 h_vec[j] = h
                 if relative_error(abs(expected_nabla_nabla_f(x)[i][j]), slope(lambda x: nabla_f(x)[j], x, h_vec)) > threshold:
-                    print(expected_nabla_nabla_f(x)[i][j], slope(lambda x: nabla_f(x)[j], x, h_vec))
-                    print(relative_error(abs(expected_nabla_nabla_f(x)[i][j]), slope(lambda x: nabla_f(x)[j], x, h_vec)))
-                assert relative_error(abs(expected_nabla_nabla_f(x)[i][j]), slope(lambda x: nabla_f(x)[j], x, h_vec)) < threshold
+                    print(expected_nabla_nabla_f(x)[i][j], slope(
+                        lambda x: nabla_f(x)[j], x, h_vec))
+                    print(relative_error(abs(expected_nabla_nabla_f(x)[
+                          i][j]), slope(lambda x: nabla_f(x)[j], x, h_vec)))
+                assert relative_error(abs(expected_nabla_nabla_f(x)[i][j]), slope(
+                    lambda x: nabla_f(x)[j], x, h_vec)) < threshold
 
 
 def test():
@@ -37,8 +45,10 @@ def test():
         return [2*x_i for x_i in x]
 
     try:
-        assert_gradient(gradient, f, [[1, 2, 3, 4], [2, 3, 4, 5], [5, 6, 7, 8]], 0.0001)
+        assert_gradient(gradient, f, [[1, 2, 3, 4], [
+                        2, 3, 4, 5], [5, 6, 7, 8]], 0.0001)
         assert False  # step size should cause assertion fail
     except AssertionError:
         pass
-    assert_gradient(gradient, f, [[1, 2, 3, 4], [2, 3, 4, 5], [5, 6, 7, 8]], 0.00001)
+    assert_gradient(gradient, f, [[1, 2, 3, 4], [
+                    2, 3, 4, 5], [5, 6, 7, 8]], 0.00001)

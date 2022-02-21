@@ -10,7 +10,7 @@ class SumOfDifferentPowers:
     @staticmethod
     def gradient(x):
         d = len(x)
-        return [2*(1 + ((i+1)-1)/(d-1))*x_i**((2*(i+1)-2)/(d-1)+1) for i, x_i in enumerate(x)]
+        return [(1 + ((i + 1)-1)/(d-1))*(x_i**2)**(((i + 1)-1)/(d-1))*2*x_i for i, x_i in enumerate(x)]
 
     @staticmethod
     def hessian(x):

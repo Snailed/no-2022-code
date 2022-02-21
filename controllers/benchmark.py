@@ -2,29 +2,33 @@ from functions import ellipsoid, rosenbrock, log_ellipsoid, attractive_sector, s
 import numpy as np
 
 
-def benchmark_ellipsoid(minimize, x0, alpha=10000):
-    return minimize(
-        lambda x: ellipsoid.Ellipsoid.f(x, alpha), x0, lambda x: ellipsoid.Ellipsoid.gradient(x, alpha))
+def benchmark_ellipsoid(minimize, x0, alpha=10000, callback=None):
+    def arg1(x):
+        return ellipsoid.Ellipsoid.f(x, alpha=alpha)
+    def arg2(x):
+        return ellipsoid.Ellipsoid.gradient(x, alpha=alpha)
+    return minimize(arg1, x0, arg2, callback=callback)
 
 
-def benchmark_rosenbrock(minimize, x0):
+def benchmark_rosenbrock(minimize, x0, callback=None):
     return minimize(
         lambda x: rosenbrock.Rosenbrock.f(
-            x), x0, rosenbrock.Rosenbrock.gradient
+            x), x0, rosenbrock.Rosenbrock.gradient, callback=callback
     )
 
 
-def benchmark_log_ellipsoid(minimize, x0, epsilon=0.0001, alpha=10000):
+def benchmark_log_ellipsoid(minimize, x0, epsilon=0.0001, alpha=10000, callback=None):
     return minimize(
         lambda x: log_ellipsoid.LogEllipsoid.f(
             x, alpha=alpha, epsilon=epsilon),
         x0,
         lambda x: log_ellipsoid.LogEllipsoid.gradient(
-            x, alpha=alpha, epsilon=epsilon)
+            x, alpha=alpha, epsilon=epsilon),
+        callback=callback
     )
 
 
-def benchmark_attractive_sector(minimize, x0, q=10000):
+def benchmark_attractive_sector(minimize, x0, q=10000, callback=None):
     return minimize(
         lambda x: attractive_sector.AttractiveSector.f(
             x, q=q
@@ -32,11 +36,12 @@ def benchmark_attractive_sector(minimize, x0, q=10000):
         x0,
         lambda x: attractive_sector.AttractiveSector.gradient(
             x, q=q
-        )
+        ),
+        callback=callback
     )
 
 
-def benchmark_sum_of_different_powers(minimize, x0):
+def benchmark_sum_of_different_powers(minimize, x0, callback=None):
     return minimize(
         lambda x: sum_of_different_powers.SumOfDifferentPowers.f(
             x
@@ -44,9 +49,9 @@ def benchmark_sum_of_different_powers(minimize, x0):
         x0,
         lambda x: sum_of_different_powers.SumOfDifferentPowers.gradient(
             x
-        )
+        ),
+        callback=callback
     )
-
 
 class BenchmarkController:
     @staticmethod
@@ -59,49 +64,69 @@ class BenchmarkController:
         # 4: How many iterations does it take before the algorithm converges? (Efficiency)
         ds = [2, 3, 4, 10, 100]
         n = 100
-        iterations = []  # iterations needed to return result
-        gradients = []  # gradient at returned point
         for d in ds:
+            iterations = []  # iterations needed to return result
+            gradients = []  # gradient at returned point
             x0s = []
             x0s.append(np.zeros(d))
             for i in range(0, n):
                 # Add random points with each coordinate in [-2, 2]
                 x0s.append((np.random.rand(d) - 0.5)*4)
             for x0 in x0s:
-                if 0.0 not in x0:
-                    _, i, grad = benchmark_ellipsoid(minimize, x0, alpha=10000)
-                    iterations.append(i)
-                    gradients.append(i)
-                    _, i, grad = benchmark_log_ellipsoid(
-                        minimize, x0, alpha=10000, epsilon=0.0001
-                    )
-                    iterations.append(i)
-                    gradients.append(i)
+                _, i, grad = benchmark_ellipsoid(minimize, x0, alpha=10000)
+                iterations.append(i)
+                # if np.linalg.norm(grad) > 1:
+                #     print('Ellipsoid')
+                #     print(x0)
+                gradients.append(np.linalg.norm(grad))
+                _, i, grad = benchmark_log_ellipsoid(
+                    minimize, x0*0.0001, alpha=10000, epsilon=0.01
+                )
+                iterations.append(i)
+                # if np.linalg.norm(grad) > 1:
+                #     print('Log Ellipsoid')
+                #     print(np.linalg.norm(grad))
+                #     print(i)
+                gradients.append(np.linalg.norm(grad))
                 if d == 2:  # Rosenbrock is only supported in 2D
                     _, i, grad = benchmark_rosenbrock(
                         minimize, x0)
                     iterations.append(i)
-                    gradients.append(i)
-                _, i, grad = benchmark_attractive_sector(
-                    minimize, x0, q=10000
-                )
-                iterations.append(i)
-                gradients.append(i)
+                    # if np.linalg.norm(grad) > 1:
+                    #     print('Rosenbrock')
+                    #     print(x0)
+                    gradients.append(np.linalg.norm(grad))
+                if d == 1:  # Attractive Sector is only supported in 1D
+                    _, i, grad = benchmark_attractive_sector(
+                        minimize, x0, q=10
+                    )
+                    iterations.append(i)
+                # if np.linalg.norm(grad) > 1:
+                #     print('Attractive sector')
+                #     print(x0)
+                #     print(grad)
+                #     print(i)
+                gradients.append(np.linalg.norm(grad))
                 _, i, grad = benchmark_sum_of_different_powers(
+                    # move the points such that we don't get complex numbers
                     minimize, x0
                 )
                 iterations.append(i)
-                gradients.append(i)
-
-        print('Optimization Algorithm Benchmark for "%s"' % label)
-        print('PARAMETERS:')
-        print('\tDimensions used: %s' % str(ds))
-        print('\tAmount of points used: %d' % n)
-        print('\t...picked at random from the interval [-2, 2]')
-        print('RESULTS:')
-        print('\tMean iterations needed to return result' %
-              np.mean(iterations))
-        print('\tVariance of iterations needed to return result' %
-              np.mean(iterations))
-        print('\tMean gradient at returned result' % np.mean(gradients))
-        print('\tVariance of gradient at returned result' % np.var(gradients))
+                # if np.linalg.norm(grad) > 1:
+                #     print('Sum of different powers')
+                #     print(x0)
+                gradients.append(np.linalg.norm(grad))
+            print('Optimization Algorithm Benchmark for "%s"' % label)
+            print('PARAMETERS:')
+            print('\tDimension: %s' % str(d))
+            print('\tAmount of points used: %d' % n)
+            print('\t...picked at random from the interval [-2, 2]')
+            print('RESULTS:')
+            print('\tMean iterations needed to return result %f' %
+                  np.mean(iterations))
+            print('\tVariance of iterations needed to return result %f' %
+                  np.var(iterations))
+            print('\tMean gradient norm at returned result %f' %
+                  np.mean(gradients))
+            print('\tVariance of gradient norm at returned result %f' %
+                  np.var(gradients))

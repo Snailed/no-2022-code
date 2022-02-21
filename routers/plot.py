@@ -9,7 +9,7 @@ class PlotRouter:
             ellipsoid.Ellipsoid.f,
             rosenbrock.Rosenbrock.f,
             log_ellipsoid.LogEllipsoid.f,
-            attractive_sector.AttractiveSector.f,
+            lambda x: attractive_sector.AttractiveSector.f(x, q=10000),
             sum_of_different_powers.SumOfDifferentPowers.f
         ]
         if len(argv) == 2 or len(argv) > 3:
