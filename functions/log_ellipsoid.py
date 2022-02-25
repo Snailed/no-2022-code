@@ -20,7 +20,12 @@ class LogEllipsoid:
         def hessian(x): return Ellipsoid.hessian(x, alpha)
         for i in range(0, len(x)):
             for j in range(0, len(x)):
-                matrix[i][j] = (1/(-(epsilon + f(x, alpha)**2)**2)) * gradient(x, alpha) * gradient(x, alpha) + ((1/(epsilon + f(x, alpha))) * hessian(x, alpha))
+                if i == j:
+                    matrix[i][j] = (1/(-(epsilon + f(x)**2)**2)) * gradient(
+                        x)[i] * gradient(x)[i] + ((1/(epsilon + f(x))) * hessian(x))
+                else:
+                    matrix[i][j] = (1/(-(epsilon + f(x)**2)**2)) * gradient(
+                        x)[j] * gradient(x)[j]
 
 
 def test():

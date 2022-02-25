@@ -5,6 +5,7 @@ import numpy as np
 def benchmark_ellipsoid(minimize, x0, alpha=10000, callback=None):
     def arg1(x):
         return ellipsoid.Ellipsoid.f(x, alpha=alpha)
+
     def arg2(x):
         return ellipsoid.Ellipsoid.gradient(x, alpha=alpha)
     return minimize(arg1, x0, arg2, callback=callback)
@@ -53,6 +54,7 @@ def benchmark_sum_of_different_powers(minimize, x0, callback=None):
         callback=callback
     )
 
+
 class BenchmarkController:
     @staticmethod
     def benchmark(minimize, label):
@@ -73,11 +75,13 @@ class BenchmarkController:
                 # Add random points with each coordinate in [-2, 2]
                 x0s.append((np.random.rand(d) - 0.5)*4)
             for x0 in x0s:
+                print('benchmark ellipsoid')
                 _, i, grad = benchmark_ellipsoid(minimize, x0, alpha=10000)
                 iterations.append(i)
                 # if np.linalg.norm(grad) > 1:
                 #     print('Ellipsoid')
                 #     print(x0)
+                print('benchmark log ellipsoid')
                 gradients.append(np.linalg.norm(grad))
                 _, i, grad = benchmark_log_ellipsoid(
                     minimize, x0*0.0001, alpha=10000, epsilon=0.01
@@ -87,6 +91,7 @@ class BenchmarkController:
                 #     print('Log Ellipsoid')
                 #     print(np.linalg.norm(grad))
                 #     print(i)
+                print('benchmark rosenbrock')
                 gradients.append(np.linalg.norm(grad))
                 if d == 2:  # Rosenbrock is only supported in 2D
                     _, i, grad = benchmark_rosenbrock(
@@ -97,6 +102,7 @@ class BenchmarkController:
                     #     print(x0)
                     gradients.append(np.linalg.norm(grad))
                 if d == 1:  # Attractive Sector is only supported in 1D
+                    print('benchmark attractive sector')
                     _, i, grad = benchmark_attractive_sector(
                         minimize, x0, q=10
                     )
@@ -106,6 +112,7 @@ class BenchmarkController:
                 #     print(x0)
                 #     print(grad)
                 #     print(i)
+                print('benchmark sum of different powers')
                 gradients.append(np.linalg.norm(grad))
                 _, i, grad = benchmark_sum_of_different_powers(
                     # move the points such that we don't get complex numbers
