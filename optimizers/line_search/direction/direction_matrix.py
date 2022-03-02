@@ -6,9 +6,7 @@ def steepest_gradient(N):
 
 
 def newton(f_hess, x):
-    print('newton start new')
     eigenvals = np.linalg.eigvals(f_hess(x))
-    print('eigenvals')
     taus = [1 - l if l < 1 else 0 for l in eigenvals]
     # print('newton eigenvals', eigenvals)
     if np.all(eigenvals > 0):

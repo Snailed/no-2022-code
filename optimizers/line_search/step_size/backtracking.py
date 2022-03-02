@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def backtrack(f, x, p, f_grad, a_bar=1, rho=0.9, c=0.2):
+def backtrack(f, x, p, f_grad, a_bar=10, rho=0.9, c=0.5):
     a = a_bar
     iterations = 0
     while f(x + a*p) > f(x) + c * a * (np.array(f_grad(x)).T @ p):

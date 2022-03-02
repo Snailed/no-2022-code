@@ -17,8 +17,8 @@ class SumOfDifferentPowers:
         d = len(x)
         matrix = np.zeros((len(x), len(x)))
         for i in range(1, len(x)+1):
-            matrix[i][i] = (((2*d + 2*i - 4)(d + 2*i - 3)) /
-                            ((d-1)**2))*x[i]**((2*i-2)/(d-1))
+            matrix[i-1][i-1] = (((2*d + 2*i - 4)*(d + 2*i - 3)) /
+                                ((d-1)**2))*x[i-1]**((2*i-2)/(d-1))
         return matrix
 
 

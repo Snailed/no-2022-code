@@ -22,10 +22,11 @@ class LogEllipsoid:
             for j in range(0, len(x)):
                 if i == j:
                     matrix[i][j] = (1/(-(epsilon + f(x)**2)**2)) * gradient(
-                        x)[i] * gradient(x)[i] + ((1/(epsilon + f(x))) * hessian(x))
+                        x)[i] * gradient(x)[i] + ((1/(epsilon + f(x))) * hessian(x)[i][i])
                 else:
                     matrix[i][j] = (1/(-(epsilon + f(x)**2)**2)) * gradient(
                         x)[j] * gradient(x)[j]
+        return matrix
 
 
 def test():

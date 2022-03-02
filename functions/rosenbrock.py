@@ -5,20 +5,20 @@ from utils.validate_gradient import assert_gradient
 class Rosenbrock:
     @staticmethod
     def f(x: [float, float]):
-        return pow(1 - x[0], 2) + 100 * pow(x[1] - pow(x[0], 2), 2)
+        return (1 - x[0])**2 + 100 * (x[1] - (x[0] ** 2)) ** 2
 
-    @staticmethod
+    @ staticmethod
     def gradient(x: [float, float]):
         return np.array([
             2*x[0] - 2 + 400*x[0]**3 - 400*x[0]*x[1],
             200*x[1] - 200*x[0]**2
         ])
 
-    @staticmethod
+    @ staticmethod
     def hessian(x):
         return np.array(
             [
-                [2 + 1200*x[0]**2 - 400*x[1]**4, -400*x[0]],
+                [2 + 1200*x[0]**2 - 400*x[1], -400*x[0]],
                 [-400*x[0], 200]
             ]
         )

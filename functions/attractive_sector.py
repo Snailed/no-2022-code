@@ -37,8 +37,8 @@ class AttractiveSector:
         def h_p(x, q): return AttractiveSector._h_prime(x, q)
         def h_p2(x, q): return AttractiveSector._h_prime_prime(x, q)
         for i in range(0, len(x)):
-            matrix[i][i] = 2*(h_p(x, q)**2) + 2*h(x, q)*h_p2(x, q) + \
-                200 * (h_p(-x, q)**2) + 200 * h(-x, q)*h_p2(-x, q)
+            matrix[i][i] = 2*(h_p(x[i], q)**2) + 2*h(x[i], q)*h_p2(x[i], q) + \
+                200 * (h_p(-x[i], q)**2) + 200 * h(-x[i], q)*h_p2(-x[i], q)
         return matrix
 
 
