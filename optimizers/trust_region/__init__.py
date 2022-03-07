@@ -24,9 +24,9 @@ def rho(f, m, x, p):
 def adjust_trust_region(delta_init, rho, p_norm, delta_max=10000):
     delta = delta_init
     if rho < 0.25:
-        delta = 0.25 * delta_init
-    elif rho > 0.75 and p_norm == delta_init:
-        delta = min(2*delta_init, delta_max)
+        delta = 0.25 * delta
+    elif rho > 0.75 and np.around(p_norm, 5) == np.around(delta, 5):
+        delta = min(2*delta, delta_max)
     return delta
 
 
@@ -88,7 +88,7 @@ def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=100):
     return p, lam
 
 
-def acceptance_criteria(f, m, x, p, eta=0.2):
+def acceptance_criteria(f, m, x, p, eta=0.0):
     return rho(f, m, x, p) > eta
 
 

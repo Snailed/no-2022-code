@@ -13,14 +13,18 @@ class TrustRegion:
             x0,
             der,
             hes=None,
-            max_iterations=10000,
+            max_iterations=100,
             callback=None,
             delta_init=100,
-            lambda_init=5
+            lambda_init=5,
+            meta_callback=None
     ):
         assert hes is not None
+        meta = {}
 
         def default_callback(xk):
+            if meta_callback:
+                meta_callback(meta)
             if callback:
                 return callback(xk)
             else:
@@ -29,10 +33,15 @@ class TrustRegion:
                 return False
 
         def direction_f(x, f, gradient, hessian, delta):
-            return trust_region_subproblem(lambda_init, delta, np.array(gradient(x)), hessian(x))
+            meta['direction'] = trust_region_subproblem(
+                lambda_init, delta, np.array(gradient(x)), hessian(x))
+            return trust_region_subproblem(lambda_init, delta, np.array(gradient(x)), hessian(x), max_iterations=100)
 
         def delta_f(delta, m, f, x, p):
             r = rho(f, m, x, p)
-            return adjust_trust_region(delta, r, np.linalg.norm(p), delta_max=10000)
+            meta['rho'] = r
+            meta['delta'] = adjust_trust_region(
+                delta, r, np.linalg.norm(p), delta_max=10000)
+            return meta['delta']
 
-        return trust_region(f, der, hes, x0, direction_f, delta_f, acceptance_criteria, callback=callback)
+        return trust_region(f, der, hes, x0, direction_f, delta_f, acceptance_criteria, callback=default_callback)
