@@ -35,7 +35,7 @@ class TrustRegion:
         def direction_f(x, f, gradient, hessian, delta):
             meta['direction'] = trust_region_subproblem(
                 lambda_init, delta, np.array(gradient(x)), hessian(x))
-            return trust_region_subproblem(lambda_init, delta, np.array(gradient(x)), hessian(x), max_iterations=100)
+            return trust_region_subproblem(lambda_init, delta, np.array(gradient(x)), hessian(x))
 
         def delta_f(delta, m, f, x, p):
             r = rho(f, m, x, p)
@@ -44,4 +44,4 @@ class TrustRegion:
                 delta, r, np.linalg.norm(p), delta_max=10000)
             return meta['delta']
 
-        return trust_region(f, der, hes, x0, direction_f, delta_f, acceptance_criteria, callback=default_callback)
+        return trust_region(f, der, hes, x0, direction_f, delta_f, acceptance_criteria, callback=default_callback, max_iterations=max_iterations)

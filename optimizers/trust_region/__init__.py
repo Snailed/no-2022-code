@@ -6,7 +6,7 @@ def trust_region(f, f_grad, f_hess, x_init, direction_f, delta_f, acceptance_f, 
     x = x_init
 
     def m(p, x):
-        return f(x) + p.T @ f_grad(x) + p.T @ f_hess(x) @ p
+        return f(x) + np.array(f_grad(x)).T @ p + 0.5 * p.T @ f_hess(x) @ p
     for i in range(max_iterations):
         p, lam = direction_f(x, f, f_grad, f_hess, delta)
         delta = delta_f(delta, m, f, x, p)
@@ -44,8 +44,9 @@ def check_pd_or_augment(X):
     return X - np.diag(aug)
 
 
-def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=100):
+def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=1000):
     lam = lambda_init
+    iters = 0
     for l in range(max_iterations):
         # inv = np.linalg.inv(
         #     B + np.diag(np.array([lam for _ in g]))
@@ -57,38 +58,25 @@ def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=100):
         # print("iteration", l)
         iters = 0
         smallest_eigenval = np.min(np.linalg.eigvals(B))
-        while lam < - smallest_eigenval:
-            lam = lam - (lam + smallest_eigenval)
+        while lam <= - smallest_eigenval:
+            lam = lam - (lam + smallest_eigenval - 0.01)
             iters += 1
             if iters > 100:
                 print("break")
-                break
-        assert lam >= - np.min(np.linalg.eigvals(B))
-
-        # print("B", B)
-        # print("smallest_eigenval", smallest_eigenval)
-        # print("lambda", lam)
-        # print("augmented B", B + np.diag(np.array([lam + 0.0001 for _ in g])))
-        # print("augmented B eigenvalues", np.linalg.eigvals(B + np.diag(np.array([lam + 0.0001 for _ in g]))))
+                # break
+        assert lam > - smallest_eigenval
         R = np.linalg.cholesky(
-            B + np.diag(np.array([lam + 0.0001 for _ in g])))
+            B + np.diag(np.array([lam for _ in g])))
         p = np.linalg.solve(R.T @ R, -g)
         q = np.linalg.solve(R.T, p)
-
-#         q = np.linalg.inv(R) @ p
-        # if not (np.all(np.round(R.T @ q, 3) == np.round(p, 3))):
-        #     print("R", R, "q", q)
-        #     print("R.T @ q", R.T @ q, "p", p)
-        #     print("around R.T @ q", np.round(R.T @ q, 3), "p", np.round(p, 3))
-        #     print("equality R.T @ q", np.round(R.T @ q, 3) == np.round(p, 3))
-        #     assert np.all(np.round(R.T @ q, 3) == np.round(p, 3))
-        # print("p: ", p, "q: ", q, "q@-g", q @ -g)
         lam = lam + (np.linalg.norm(p)/np.linalg.norm(q))**2 * \
             ((np.linalg.norm(p) - delta) / delta)
+        iters = max(iters, l)
+    # assert np.linalg.norm(p) <= delta, "The norm of p is larger than delta"
     return p, lam
 
 
-def acceptance_criteria(f, m, x, p, eta=0.0):
+def acceptance_criteria(f, m, x, p, eta=0.2):
     return rho(f, m, x, p) > eta
 
 
@@ -98,22 +86,46 @@ def test():
     x = [2, 1]
     # delta = 10
     # lambda_init = 1
-    for function in [LogEllipsoid, Rosenbrock]:
-        for delta in np.linspace(0.001, 1, 100):
-            for lambda_init in np.linspace(0.00001, 1, 100):
-                p, lam = trust_region_subproblem(
-                    lambda_init, delta, function.gradient(x), function.hessian(x))
-                lhs = (function.hessian(x) +
-                       np.diag([lam for _ in range(len(x))])) @ p
-                rhs = -1 * function.gradient(x)
-                assert len(lhs) == len(rhs)
-                for l, r in zip(lhs, rhs):
-                    if np.around(l, 2) != np.around(r, 2):
-                        print(l, r)
-                    assert np.around(l, 2) == np.around(r, 2)
-                if np.around(lam * (delta - np.linalg.norm(p)), 2) != 0:
-                    print(function, delta, lambda_init)
-                    print(lam * (delta - np.linalg.norm(p)))
-                assert np.around(lam * (delta - np.linalg.norm(p)), 2) == 0
-                assert np.all(np.linalg.eigvals(
-                    function.hessian(x) + lam * np.eye(len(x))) >= 0)
+    # for function in [LogEllipsoid, Rosenbrock]:
+    #     for delta in np.linspace(0.001, 1, 100):
+    #         for lambda_init in np.linspace(0.00001, 1, 100):
+    #             p, lam = trust_region_subproblem(
+    #                 lambda_init, delta, function.gradient(x), function.hessian(x))
+    #             lhs = (function.hessian(x) +
+    #                    np.diag([lam for _ in range(len(x))])) @ p
+    #             rhs = -1 * function.gradient(x)
+    #             assert len(lhs) == len(rhs)
+    #             for l, r in zip(lhs, rhs):
+    #                 if np.around(l, 2) != np.around(r, 2):
+    #                     print(l, r)
+    #                 assert np.around(l, 2) == np.around(r, 2)
+    #             if np.around(lam * (delta - np.linalg.norm(p)), 2) != 0:
+    #                 print(function, delta, lambda_init)
+    #                 print(lam * (delta - np.linalg.norm(p)))
+    #             assert np.around(lam * (delta - np.linalg.norm(p)), 2) == 0
+    #             assert np.all(np.linalg.eigvals(
+    #                 function.hessian(x) + lam * np.eye(len(x))) >= 0)
+
+    # test the subproblem
+    def f(x):
+        X = np.array(x)
+        return np.sum(0.5 * X.T @ X)
+
+    def f_grad(x):
+        return np.array(x)
+
+    def f_hess(x):
+        return np.eye(len(x))
+
+    init_x = [1, 1]
+    delta = 100
+    p, lam = trust_region_subproblem(1, delta, f_grad(init_x), f_hess(init_x))
+    # assert delta - np.linalg.norm(p) == 0
+    assert lam == 0, ("Lambda is not zero - it is %f" % lam)
+
+    init_x = [1, 1]
+    delta = 0.5
+    p, lam = trust_region_subproblem(1, delta, f_grad(init_x), f_hess(init_x))
+    assert delta - \
+        np.linalg.norm(
+            p) == 0, "The norm of p is not the same as delta, ||p|| = %f, delta = %d" % (np.linalg.norm(p), delta)
