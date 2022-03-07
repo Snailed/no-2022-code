@@ -2,6 +2,7 @@ from controllers.test import TestController
 from functions import ellipsoid, rosenbrock, log_ellipsoid, attractive_sector, sum_of_different_powers
 from utils import validate_gradient
 from optimizers.line_search import direction, line_search, steepest_descent, step_size, newton
+from optimizers import trust_region
 
 
 class TestRouter:
@@ -45,6 +46,8 @@ class TestRouter:
                     tests.append(steepest_descent.test)
                 elif argv[i] == 'newton':
                     tests.append(newton.test)
+                elif argv[i] == 'trust-region':
+                    tests.append(trust_region.test)
                 else:
                     raise AssertionError(
                         'Did not recognize argument %s' % argv[i])
