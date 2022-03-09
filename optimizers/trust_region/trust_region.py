@@ -16,7 +16,7 @@ class TrustRegion:
             max_iterations=100,
             callback=None,
             delta_init=100,
-            lambda_init=5,
+            lambda_init=10000,
             meta_callback=None
     ):
         assert hes is not None
