@@ -44,4 +44,4 @@ class TrustRegion:
                 delta, r, np.linalg.norm(p), delta_max=10000)
             return meta['delta']
 
-        return trust_region(f, der, hes, x0, direction_f, delta_f, acceptance_criteria, callback=default_callback, max_iterations=max_iterations)
+        return trust_region(f, der, hes, x0, direction_f, delta_f, acceptance_criteria, callback=default_callback, max_iterations=max_iterations, delta_init=delta_init)

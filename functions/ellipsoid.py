@@ -26,7 +26,7 @@ class Ellipsoid:
     def hessian(x, alpha=1000):
         matrix = np.zeros((len(x), len(x)))
         for i in range(0, len(x)):
-            matrix[i][i] = 2*alpha**((i-1)/(len(x)-1))
+            matrix[i][i] = 2*alpha**((i)/(len(x)-1))
         return matrix
 
 

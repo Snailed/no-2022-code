@@ -145,6 +145,7 @@ dmypy.json
 cython_debug/
 
 NO-Assignment-1.ipynb
+nikolaj-no-4.ipynb
 # PyCharm
 #  JetBrains specific template is maintainted in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
