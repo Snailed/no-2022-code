@@ -9,6 +9,7 @@ def trust_region(f, f_grad, f_hess, x_init, direction_f, delta_f, acceptance_f, 
         return f(x) + np.array(f_grad(x)).T @ p + 0.5 * p.T @ f_hess(x) @ p
     for i in range(max_iterations):
         p, lam = direction_f(x, f, f_grad, f_hess, delta)
+        print(p, lam)
         delta = delta_f(delta, m, f, x, p)
         if acceptance_f(f, m, x, p):
             x = x + p
@@ -18,6 +19,8 @@ def trust_region(f, f_grad, f_hess, x_init, direction_f, delta_f, acceptance_f, 
 
 
 def rho(f, m, x, p):
+    print("top part", f(x) - f(x+p))
+    print("bottom part", m(np.zeros(len(x)), x) - m(p, x))
     return (f(x) - f(x+p))/(m(np.zeros(len(x)), x) - m(p, x))
 
 
@@ -39,44 +42,57 @@ def check_pd_or_augment(X):
     # for i, e in enumerate(eigvals):
     #     if e < 0:
     #         aug[i] = e - 1
-    print(np.linalg.eigvals(X - np.diag(aug)))
-    print(np.linalg.cholesky(X - np.diag(aug)))
+    # print(np.linalg.eigvals(X - np.diag(aug)))
+    # print(np.linalg.cholesky(X - np.diag(aug)))
     return X - np.diag(aug)
 
 
-def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=1000):
+# def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=1000):
+#     lam = lambda_init
+#     iters = 0
+#     for l in range(max_iterations):
+#         iters = 0
+#         smallest_eigenval = np.min(np.linalg.eigvals(B))
+#         while lam <= -smallest_eigenval:
+#             lam = -smallest_eigenval + 0.01
+#             iters += 1
+#             if iters > 100:
+#                 print("break")
+#                 # break
+#         assert lam > - smallest_eigenval
+#         R = np.linalg.cholesky(
+#             B + np.diag(np.array([lam for _ in g])))
+#         p = np.linalg.solve(R.T @ R, -g)
+#         q = np.linalg.solve(R.T, p)
+#         lam = lam + (np.linalg.norm(p)/np.linalg.norm(q))**2 * \
+#             ((np.linalg.norm(p) - delta) / delta)
+#         iters = max(iters, l)
+#     return p, lam
+
+def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=5):
     lam = lambda_init
     iters = 0
     for l in range(max_iterations):
-        # inv = np.linalg.inv(
-        #     B + np.diag(np.array([lam for _ in g]))
-        # )
-        # p = (
-        #     inv @ (-1 * g)
-        # )
-        # print("LAMDA: ", lam, "B: ", B)
-        # print("iteration", l)
-        iters = 0
         smallest_eigenval = np.min(np.linalg.eigvals(B))
-        while lam <= - smallest_eigenval:
-            lam = lam - (lam + smallest_eigenval - 0.01)
-            iters += 1
-            if iters > 100:
-                print("break")
-                # break
-        assert lam > - smallest_eigenval
-        R = np.linalg.cholesky(
-            B + np.diag(np.array([lam for _ in g])))
-        p = np.linalg.solve(R.T @ R, -g)
-        q = np.linalg.solve(R.T, p)
-        lam = lam + (np.linalg.norm(p)/np.linalg.norm(q))**2 * \
-            ((np.linalg.norm(p) - delta) / delta)
-        iters = max(iters, l)
-    # assert np.linalg.norm(p) <= delta, "The norm of p is larger than delta"
+        if smallest_eigenval <= 0:
+            lam = -smallest_eigenval + 0.001
+        eigenvalues, Q = np.linalg.eig(B + lam * np.eye(B.shape[0]))
+        assert np.all((B + lam * np.eye(B.shape[0])
+                       ) @ Q[:, 0] == eigenvalues[0] * Q[:, 0]), "First eigenvector/value pair was not valid (Q = %s)" % Q
+
+        def norm_p_squared(Q, g, eigenvalues, lam):
+            return np.sum([((Q[:, i].T @ g)/(eigenvalues[i] + lam))**2 for i in range(len(eigenvalues))])
+        phi = norm_p_squared(Q, g, eigenvalues, lam) - delta
+        phi_prime = -2 * np.sum([((Q[:, i].T @ g)**2/(eigenvalues[i] + lam)**3)
+                                for i in range(len(eigenvalues))])
+        lam = lam - phi/phi_prime
+        iters += 1
+        p = -np.add.reduce([((Q[:, i].T @ g)/(eigenvalues[i] + lam)) * Q[:, i]
+                            for i in range(len(eigenvalues))])
     return p, lam
 
 
-def acceptance_criteria(f, m, x, p, eta=0.2):
+def acceptance_criteria(f, m, x, p, eta=0.1):
     return rho(f, m, x, p) > eta
 
 
