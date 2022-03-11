@@ -11,32 +11,41 @@ def trust_region(f, f_grad, f_hess, x_init, direction_f, delta_f, acceptance_f, 
 
     for i in range(max_iterations):
         p, lam = direction_f(x, f, f_grad, f_hess, delta)
-        print("-----")
-        print("norm of p: ", np.linalg.norm(p))
-        print("delta: ", delta)
+        # print("-----")
+        # print("norm of p: ", np.linalg.norm(p))
+        # print("delta: ", delta)
         # print(p, lam)
         delta = delta_f(delta, m, f, x, p)
         if acceptance_f(f, m, x, p):
             x = x + p
         if callback and callback(x):
             break
+        if i == max_iterations - 1:
+            print("REACHED MAX ITERS")
+    direction_f(x, f, f_grad, f_hess, delta)
+    delta_f(delta, m, f, x, p)
+    callback(x)
     return x
 
 
 def rho(f, m, x, p):
-    # print("top part", f(x) - f(x+p))
-    # print("bottom part", m(np.zeros(len(x)), x) - m(p, x))
-    return (f(x) - f(x+p))/(m(np.zeros(len(x)), x) - m(p, x))
+    print("p", p)
+    print("top part", f(x) - f(x+p))
+    print("bottom part", m(np.zeros(len(x)), x) - m(p, x))
+    bottom = (m(np.zeros(len(x)), x) - m(p, x))
+    if bottom == 0.0:
+        return 0.0
+    return (f(x) - f(x+p))/bottom
 
 
 def adjust_trust_region(delta_init, rho, p_norm, delta_max=10000):
     delta = delta_init
-    print("delta", delta, "rho", rho, "p_norm", p_norm)
     if rho < 0.25:
         delta = 0.25 * delta
+        # print("[DEC] delta is now", delta)
     elif rho > 0.75 and math.isclose(p_norm, delta, abs_tol=1e-1):
-        print("increased delta!")
         delta = min(2*delta, delta_max)
+        # print("[INC] delta is now", delta)
     return delta
 
 
@@ -114,18 +123,22 @@ def check_pd_or_augment(X):
 #     return p, lam
 
 def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=5):
-    print("DELTA", delta)
     lam = lambda_init
     iters = 0
+    print("B", B, "inv(B)", np.linalg.inv(B), "g", g)
 
     if np.min(np.linalg.eigvals(B)) > 0:
         if np.linalg.norm(-np.linalg.inv(B) @ g) <= delta:
+            # print("Newton Step?", -np.linalg.inv(B), g)
             return -np.linalg.inv(B) @ g, 0
         else:
-            print("The newton step is outside the trust region",
-                  np.linalg.norm(-np.linalg.inv(B) @ g))
+            # print("Newton step was outside the delta region")
+            pass
+            # print("The newton step is outside the trust region",
+            #       np.linalg.norm(-np.linalg.inv(B) @ g))
     else:
-        print("the smallest eigenvalue negative or 0")
+        # print("the smallest eigenvalue negative or 0")
+        pass
     for l in range(max_iterations):
         smallest_eigenval = np.min(np.linalg.eigvals(B))
         if smallest_eigenval <= 0:
@@ -133,6 +146,8 @@ def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=5):
         eigenvalues, Q = np.linalg.eig(B + lam * np.eye(B.shape[0]))
         assert np.all(np.around((B + lam * np.eye(B.shape[0])
                                  ) @ Q[:, 0], 5) == np.around(eigenvalues[0] * Q[:, 0], 5)), "First eigenvector/value pair was not valid (Q = %s, eigenvalues = %s, LHS = %s, RHS = %s)" % (Q, eigenvalues, (B + lam * np.eye(B.shape[0])) @ Q[:, 1], eigenvalues[1] * Q[:, 1])
+        for i in range(len(eigenvalues)):
+            assert not math.isclose(Q[:, i] @ g, 0, abs_tol=1e-4)
 
         smallest_eigenval = np.min(
             np.linalg.eigvals(B))
@@ -142,7 +157,7 @@ def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=5):
         lam0 = -smallest_eigenval + epsilon
 
         def get_p(B, lam, g):
-            return -np.linalg.inv(B + lam * np.eye(B.shape[0])) @ g
+            return -np.linalg.inv(B + float(lam) * np.eye(B.shape[0])) @ g
 
         n = 0
         while np.linalg.norm(get_p(B, lam0, g)) <= delta:
@@ -160,7 +175,7 @@ def trust_region_subproblem(lambda_init, delta, g, B, max_iterations=5):
             assert n < 10000
         assert np.linalg.norm(get_p(B, lam1, g)) < delta
 
-        for i in range(10000):
+        for i in range(100):
             lam = (lam0 + lam1)/2
             if np.linalg.norm(get_p(B, lam, g)) > delta:
                 lam0 = lam
