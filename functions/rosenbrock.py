@@ -7,7 +7,7 @@ class Rosenbrock:
     def f(x: [float, float]):
         return (1 - x[0])**2 + 100 * (x[1] - (x[0] ** 2)) ** 2
 
-    @ staticmethod
+    @staticmethod
     def gradient(x: [float, float]):
         return np.array([
             2*x[0] - 2 + 400*x[0]**3 - 400*x[0]*x[1],

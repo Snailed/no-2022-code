@@ -16,9 +16,9 @@ class Ellipsoid:
         return np.sum(list(sum_parts))
 
     @staticmethod
-    def gradient(x, alpha=1000):
+    def gradient(x, alpha=1000.0):
         return [
-            (2*alpha**(((i + 1)-1)/(len(x) - 1))*x_i)
+            (2.0*alpha**(((i + 1)-1)/(len(x) - 1)) * x_i)
             for i, x_i in enumerate(x)
         ]
 
